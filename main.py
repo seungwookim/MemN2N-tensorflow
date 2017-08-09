@@ -2,22 +2,21 @@ import train, predict
 import tensorflow as tf
 
 def main(_) :
-    # train
-    train.run(False)
-
-    # eval
-    train.run(True)
+    # # train
+    # train.run(False)
+    #
+    # # eval
+    # train.run(True)
 
     # predict
-    test_txt = " once again the specialists were not able to handle the imbalances on the floor of the new york stock exchange said christopher " \
-               "<unk> senior vice president at <unk> securities corp <unk> james <unk> chairman of specialists henderson brothers inc. it is easy " \
-               "to say the specialist is n't doing his job when the dollar is in a <unk> even central banks ca n't stop it speculators are calling for " \
-               "a degree of liquidity that is not there in the market many money managers and some traders had already left their offices early friday " \
-               "afternoon on a warm autumn day because the stock market was so quiet then in a <unk> plunge the dow jones industrials in barely an hour " \
-               "surrendered about a third of their gains this year <unk> up a 190.58-point or N N loss on the day in <unk> trading volume <unk> trading" \
-               " accelerated to N million shares a record for the big board " \
-               "accelerated what?"
-    predict.run(test_txt)
+    test_context = "but while the new york stock exchange did n't fall apart friday as the dow jones industrial average plunged N points most of" \
+                   " it in the final hour it barely managed to stay this side of chaos some circuit breakers installed after the october N crash " \
+                   "failed their first test traders say unable to cool the selling panic in both stocks and futures the N stock specialist firms on " \
+                   "the big board floor the buyers and sellers of last resort who were criticized after the N crash once again could n't handle the " \
+                   "selling pressure big investment banks refused to step up to the plate to support the beleaguered floor traders by buying big blocks" \
+                   " of stock traders say heavy selling of standard & poor 's 500-stock index futures in chicago <unk> beat stocks downward "
+    test_question = "how was the test on october?"
+    predict.run(test_context, test_question)
 
 if __name__ == '__main__':
     tf.app.run()

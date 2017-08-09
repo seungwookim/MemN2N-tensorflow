@@ -117,96 +117,107 @@ class MemN2N(object):
         self.saver = tf.train.Saver()
 
     def train(self, data):
-        N = int(math.ceil(len(data) / self.batch_size))
-        cost = 0
-
-        x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
-        time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
-        target = np.zeros([self.batch_size, self.nwords]) # one-hot-encoded
-        context = np.ndarray([self.batch_size, self.mem_size])
-
-        x.fill(self.init_hid)
-        for t in range(self.mem_size):
-            time[:,t].fill(t)
-
-        if self.show:
-            from utils import ProgressBar
-            bar = ProgressBar('Train', max=N)
-
-        for idx in range(N):
-            if self.show: bar.next()
-            target.fill(0)
-            for b in range(self.batch_size):
-                m = random.randrange(self.mem_size, len(data))
-                target[b][data[m]] = 1
-                context[b] = data[m - self.mem_size:m]
-
-            _, loss, self.step = self.sess.run([self.optim,
-                                                self.loss,
-                                                self.global_step],
-                                                feed_dict={
-                                                    self.input: x,
-                                                    self.time: time,
-                                                    self.target: target,
-                                                    self.context: context})
-            cost += np.sum(loss)
-
-        if self.show: bar.finish()
-        return cost/N/self.batch_size
-
-    def test(self, data, label='Test'):
-        N = int(math.ceil(len(data) / self.batch_size))
-        cost = 0
-
-        x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
-        time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
-        target = np.zeros([self.batch_size, self.nwords]) # one-hot-encoded
-        context = np.ndarray([self.batch_size, self.mem_size])
-
-        x.fill(self.init_hid)
-        for t in range(self.mem_size):
-            time[:,t].fill(t)
-
-        if self.show:
-            from utils import ProgressBar
-            bar = ProgressBar(label, max=N)
-
-        m = self.mem_size
-        for idx in range(N):
-            if self.show: bar.next()
-            target.fill(0)
-            for b in range(self.batch_size):
-                target[b][data[m]] = 1
-                context[b] = data[m - self.mem_size:m]
-                m += 1
-
-                if m >= len(data):
-                    m = self.mem_size
-
-            loss = self.sess.run([self.loss], feed_dict={self.input: x,
-                                                         self.time: time,
-                                                         self.target: target,
-                                                         self.context: context})
-            cost += np.sum(loss)
-
-        if self.show: bar.finish()
-        return cost/N/self.batch_size
-
-    def predict(self, data):
         try :
-            result = []
+            N = int(math.ceil(len(data) / self.batch_size))
+            cost = 0
+
             x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
             time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
+            target = np.zeros([self.batch_size, self.nwords]) # one-hot-encoded
             context = np.ndarray([self.batch_size, self.mem_size])
 
             x.fill(self.init_hid)
             for t in range(self.mem_size):
                 time[:,t].fill(t)
 
-            if (self.mem_size >= len(data)) :
+            if self.show:
+                from utils import ProgressBar
+                bar = ProgressBar('Train', max=N)
+
+            for idx in range(N):
+                if self.show: bar.next()
+                target.fill(0)
+                for b in range(self.batch_size):
+                    m = random.randrange(self.mem_size, len(data))
+                    target[b][data[m]] = 1
+                    context[b] = data[m - self.mem_size:m]
+
+                _, loss, self.step = self.sess.run([self.optim,
+                                                    self.loss,
+                                                    self.global_step],
+                                                    feed_dict={
+                                                        self.input: x,
+                                                        self.time: time,
+                                                        self.target: target,
+                                                        self.context: context})
+                cost += np.sum(loss)
+
+            if self.show: bar.finish()
+            return cost/N/self.batch_size
+        except Exception as e :
+            print(e)
+
+    def test(self, data, label='Test'):
+        try :
+            N = int(math.ceil(len(data) / self.batch_size))
+            cost = 0
+
+            x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
+            time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
+            target = np.zeros([self.batch_size, self.nwords]) # one-hot-encoded
+            context = np.ndarray([self.batch_size, self.mem_size])
+
+            x.fill(self.init_hid)
+            for t in range(self.mem_size):
+                time[:,t].fill(t)
+
+            if self.show:
+                from utils import ProgressBar
+                bar = ProgressBar(label, max=N)
+
+            m = self.mem_size
+            for idx in range(N):
+                if self.show: bar.next()
+                target.fill(0)
+                for b in range(self.batch_size):
+                    target[b][data[m]] = 1
+                    context[b] = data[m - self.mem_size:m]
+                    m += 1
+
+                    if m >= len(data):
+                        m = self.mem_size
+
+                loss = self.sess.run([self.loss], feed_dict={self.input: x,
+                                                             self.time: time,
+                                                             self.target: target,
+                                                             self.context: context})
+                cost += np.sum(loss)
+
+            if self.show: bar.finish()
+            return cost/N/self.batch_size
+        except Exception as e :
+            print(e)
+
+    def predict(self, input_context, input_question):
+        try :
+            self.load()
+            result = []
+            x = np.ndarray([self.batch_size, self.edim], dtype=np.float32)
+            time = np.ndarray([self.batch_size, self.mem_size], dtype=np.int32)
+            context = np.ndarray([self.batch_size, self.mem_size])
+
+            if (len(input_question) >  self.edim) :
+                x[0] = np.array(input_question[0:self.edim])
+            else :
+                x[0] = np.array(input_question[0:self.edim] + ([self.init_hid] * (self.edim - len(input_question))))
+
+            for t in range(self.mem_size):
+                time[:,t].fill(t)
+
+            if (self.mem_size >= len(input_context)) :
                 raise Exception ("input must be longer than {0}".format(self.mem_size))
 
-            context[0] = data[len(data) - self.mem_size :len(data)]
+            context[0] = input_context[len(input_context) - self.mem_size :len(input_context)]
             result.append(self.sess.run([self.z], feed_dict={self.input: x,
                                                              self.time: time,
                                                              self.context: context}))

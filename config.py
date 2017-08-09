@@ -3,7 +3,7 @@ class Config():
     edim = 150
     lindim = 75
     nhop = 6
-    mem_size = 10
+    mem_size = 100
     batch_size = 128
     nepoch = 1
     init_lr = 0.01

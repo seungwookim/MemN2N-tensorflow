@@ -21,6 +21,7 @@ def run(is_test = False):
     save_obj('%s/word2idx.pkl' % (Config.vector_dir), word2idx)
     Config.nwords = len(word2idx)
 
+    tf.reset_default_graph()
     with tf.Session() as sess:
         model = MemN2N(Config, sess, True)
         model.build_model()
@@ -29,5 +30,7 @@ def run(is_test = False):
             model.run(valid_data, test_data)
         else:
             model.run(train_data, valid_data)
+
+        tf.summary.FileWriter("./logs", graph=tf.get_default_graph())
 
 
